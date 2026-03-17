@@ -48,7 +48,7 @@ hyperliquid-trader-analysis/
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/hyperliquid-trader-analysis
+git clone https://github.com/Ayush-Pathakk/trader-analysis
 cd hyperliquid-trader-analysis
 
 # 2. Install dependencies
@@ -147,7 +147,3 @@ seaborn>=0.12
 scikit-learn>=1.3
 jupyter
 ```
-
----
-
-*Built for the Junior Data Scientist — Trader Behavior Insights role at PrimeTrade.ai*
