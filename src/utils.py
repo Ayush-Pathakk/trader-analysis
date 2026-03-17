@@ -1,8 +1,3 @@
-"""
-utils.py — Core utility functions for Hyperliquid Trader Analysis
-All data loading, cleaning, feature engineering, and plotting helpers live here.
-If something breaks, fix it here — the notebook stays clean.
-"""
 
 import pandas as pd
 import numpy as np
@@ -14,9 +9,6 @@ import os
 
 warnings.filterwarnings("ignore")
 
-# ─────────────────────────────────────────────
-# CONFIG — change thresholds/paths here only
-# ─────────────────────────────────────────────
 CONFIG = {
     "trades_path":     "../data/compressed_data.csv",
     "sentiment_path":  "../data/fear_greed_index.csv",
@@ -35,9 +27,6 @@ CONFIG = {
     },
 }
 
-# ─────────────────────────────────────────────
-# 1. DATA LOADING
-# ─────────────────────────────────────────────
 
 def load_trades(path: str) -> pd.DataFrame:
     """Load and normalize the Hyperliquid trades CSV / gz file."""
@@ -46,19 +35,16 @@ def load_trades(path: str) -> pd.DataFrame:
     except Exception as e:
         raise FileNotFoundError(f"Could not load trades file at '{path}'. Error: {e}")
 
-    # Normalize column names → snake_case
     df.columns = (
         df.columns.str.strip()
                   .str.lower()
                   .str.replace(" ", "_", regex=False)
     )
 
-    # Parse date from 'timestamp_ist' (format: DD-MM-YYYY HH:MM)
     df["date"] = pd.to_datetime(
         df["timestamp_ist"], format="%d-%m-%Y %H:%M", errors="coerce"
     ).dt.date
 
-    # Drop rows where date parse failed
     bad = df["date"].isna().sum()
     if bad > 0:
         print(f"  [load_trades] Warning: {bad} rows had unparseable timestamps — dropped.")
@@ -115,10 +101,6 @@ def merge_datasets(trades: pd.DataFrame, sentiment: pd.DataFrame) -> pd.DataFram
     return merged
 
 
-# ─────────────────────────────────────────────
-# 2. FEATURE ENGINEERING
-# ─────────────────────────────────────────────
-
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Add behavior-driven features to the trades dataframe.
@@ -136,11 +118,6 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         lambda x: "Fear" if "Fear" in str(x) else ("Greed" if "Greed" in str(x) else "Neutral")
     )
 
-    # High leverage flag
-    # NOTE: Hyperliquid data doesn't have a direct leverage column;
-    # we proxy leverage via size_usd / (size_tokens * execution_price) where available,
-    # or flag large-size trades as high exposure.
-    # Using size_usd as a trade size proxy for risk analysis.
     df["trade_size_usd"] = df["size_usd"].abs()
 
     # Liquidation flag
@@ -200,11 +177,6 @@ def build_trader_profiles(df: pd.DataFrame) -> pd.DataFrame:
     print(f"  [profiles] Built profiles for {len(profiles)} traders.")
     return profiles
 
-
-# ─────────────────────────────────────────────
-# 3. CLUSTERING — TRADER ARCHETYPES
-# ─────────────────────────────────────────────
-
 def cluster_traders(profiles: pd.DataFrame, n_clusters: int = 3, random_state: int = 42):
     """
     K-Means clustering to identify trader archetypes.
@@ -252,10 +224,6 @@ def cluster_traders(profiles: pd.DataFrame, n_clusters: int = 3, random_state: i
     print(f"  [clustering] Archetypes: {profiles['archetype'].value_counts().to_dict()}")
     return profiles, centers, label_map
 
-
-# ─────────────────────────────────────────────
-# 4. PLOTTING HELPERS
-# ─────────────────────────────────────────────
 
 PLOT_STYLE = {
     "figure.facecolor":  "#0d1117",
@@ -480,10 +448,6 @@ def plot_archetypes(profiles: pd.DataFrame, out_dir: str = "outputs/figures"):
     plt.tight_layout()
     return save_fig(fig, "06_trader_archetypes", out_dir)
 
-
-# ─────────────────────────────────────────────
-# 5. INSIGHT GENERATORS
-# ─────────────────────────────────────────────
 
 def generate_summary_stats(df: pd.DataFrame, profiles: pd.DataFrame) -> dict:
     """Return a dict of key numbers used in the written insights."""
